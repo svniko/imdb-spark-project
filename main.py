@@ -1,5 +1,6 @@
 import settings
 import pandas as pd
+import task1, task2
 
 import pyspark
 
@@ -9,18 +10,19 @@ import pyspark.sql.types as t
 
 from pyspark.sql.functions import col
 
-spark = SparkSession.builder.appName("Basics").getOrCreate()
-
-def task1(movies_title_akas):
+# spark = SparkSession.builder.appName("Basics").getOrCreate()
 
 
-    # фільтруємо дані з UA регіоном
-    ukr_movies = movies_title_akas.filter((col("region") == "UA") & (col("title").isNotNull()))
-
-    pandas_df = ukr_movies.select("title").toPandas()
-
-    # зберегти Pandas DataFrame в форматі CSV
-    pandas_df.to_csv(r"imdb_out\ukr_movie_titles.csv", index=False)
+# def task1(movies_title_akas):
+#
+#
+#     # фільтруємо дані з UA регіоном
+#     ukr_movies = movies_title_akas.filter((col("region") == "UA") & (col("title").isNotNull()))
+#
+#     pandas_df = ukr_movies.select("title").toPandas()
+#
+#     # зберегти Pandas DataFrame в форматі CSV
+#     pandas_df.to_csv(r"imdb_out\ukr_movie_titles.csv", index=False)
 
 
 def main():
@@ -38,11 +40,14 @@ def main():
     # df = spark.createDataFrame(d, s)
     # df.show()
 
-     # task 1
+    # task1.task()
+    task2.task()
+
+
     # завантажуємо title_akas до датафрейму
 
-    movies_title_akas = spark.read.csv(settings.PATH_TO_TITLE_AKAS, sep='\t', header=True)
-    task1(movies_title_akas)
+    # movies_title_akas = spark.read.csv(settings.PATH_TO_TITLE_AKAS, sep='\t', header=True)
+    # task1(movies_title_akas)
 
 
 
@@ -64,7 +69,6 @@ def main():
     #
     # df = spark_session.createDataFrame(data, schema)
     # df.show()
-    spark.stop()
 
 if __name__ == "__main__":
     main()
