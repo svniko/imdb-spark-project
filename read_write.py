@@ -1,4 +1,6 @@
-def read():
+import settings
+
+def read_names():
     pass
 
 
