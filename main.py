@@ -1,6 +1,7 @@
 import settings
 import pandas as pd
 import task1, task2, task3
+import get_schema
 
 import pyspark
 
@@ -40,9 +41,10 @@ def main():
     # df = spark.createDataFrame(d, s)
     # df.show()
 
+    get_schema.print_schemas()
     # task1.task()
     # task2.task()
-    task3.task()
+    # task3.task()
 
 
 
