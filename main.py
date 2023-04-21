@@ -1,6 +1,6 @@
 import settings
 import pandas as pd
-import task1, task2
+import task1, task2, task3
 
 import pyspark
 
@@ -41,34 +41,10 @@ def main():
     # df.show()
 
     # task1.task()
-    task2.task()
+    # task2.task()
+    task3.task()
 
 
-    # завантажуємо title_akas до датафрейму
-
-    # movies_title_akas = spark.read.csv(settings.PATH_TO_TITLE_AKAS, sep='\t', header=True)
-    # task1(movies_title_akas)
-
-
-
-    # movies_names = spark_session.read.csv(settings.PATH_TO_NAMES, sep='\t', header=True)
-    # movies_names.printSchema()
-
-
-
-    # ukr_movie_titles = ukr_movies.select("title")
-    #
-    # # write DataFrame to CSV
-    # ukr_movie_titles.coalesce(1).write.csv(r"imdb_out/ukr_movie_titles.csv", header=True)
-
-    # movies_names.show()
-    # data = [('a', 1), ('b', 2)]
-    # schema = t.StructType([
-    #     t.StructField("name", t.StringType(), True),
-    #     t.StructField("value", t.IntegerType(), True)])
-    #
-    # df = spark_session.createDataFrame(data, schema)
-    # df.show()
 
 if __name__ == "__main__":
     main()
