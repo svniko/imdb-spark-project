@@ -1,29 +1,5 @@
-import settings
-import pandas as pd
-import task1, task2, task3
-import get_schema
 
-import pyspark
-
-from pyspark import SparkConf
-from pyspark.sql import SparkSession
-import pyspark.sql.types as t
-
-from pyspark.sql.functions import col
-
-# spark = SparkSession.builder.appName("Basics").getOrCreate()
-
-
-# def task1(movies_title_akas):
-#
-#
-#     # фільтруємо дані з UA регіоном
-#     ukr_movies = movies_title_akas.filter((col("region") == "UA") & (col("title").isNotNull()))
-#
-#     pandas_df = ukr_movies.select("title").toPandas()
-#
-#     # зберегти Pandas DataFrame в форматі CSV
-#     pandas_df.to_csv(r"imdb_out\ukr_movie_titles.csv", index=False)
+import task1, task2, task3, task4, task5, task8
 
 
 def main():
@@ -41,12 +17,14 @@ def main():
     # df = spark.createDataFrame(d, s)
     # df.show()
 
-    get_schema.print_schemas()
+    # get_schema.print_schemas()
+
     # task1.task()
     # task2.task()
     # task3.task()
-
-
+    # task4.task()
+    # task5.task()
+    task8.task()
 
 if __name__ == "__main__":
     main()
