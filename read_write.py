@@ -1,10 +1,15 @@
 from pyspark.sql import SparkSession
+import pyspark.sql.types as t
 
 
-def read_data(file_path):
-    spark = SparkSession.builder.appName("ReadData").getOrCreate()
-    df = spark.read.csv(file_path, sep='\t', header=True)
-    return df
+def read_data(spark_session, file_path):
+    # spark = SparkSession.builder.appName("ReadData").getOrCreate()
+    # df = spark.read.csv(file_path, sep='\t', header=True)
+    # return df
+    # schema = t.StructType([t.StructField(column, t.DoubleType(), True) for column in names])
+    return (spark_session.read.csv(file_path,
+                                   header=True,
+                                   sep='\t'))
 
 
 def write_file(df, file_path):
