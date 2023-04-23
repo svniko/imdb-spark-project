@@ -14,4 +14,7 @@ def read_data(spark_session, file_path):
 
 def write_file(df, file_path):
     df.toPandas().to_csv(file_path, index=False)
-
+    # # df.write.options(header='True', delimiter=',') \
+    # #         .mode('overwrite')\
+    # #         .csv(file_path)
+    # df.write.format("csv").mode('overwrite').save(file_path)
