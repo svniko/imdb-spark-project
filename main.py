@@ -52,34 +52,32 @@ def main():
             value.printSchema()
             print('--------')
 
-    # # task1
+    # task1
     task_1 = tasks.task1(akas_df)
-    # # # Show results
+    # Show results
     # task_1.show()
 
-    # # task2
+    # task2
     task_2 = tasks.task2(name_basics_df)
-    # # # Show results
+    # Show results
     # task_2 .show()
 
-    # # task 3
+    # task 3
     task_3 = tasks.task3(title_basics_df)
-    # # Show results
+    # Show results
     # task_3.show()
 
     # task4
     task_4 = tasks.task4(principals_df, names_df, title_basics_df)
-    # # Show results
+    # Show results
     # task_4.show()
-    # # Save results
 
-
-    # # task5
+    # task5
     task_5 = tasks.task5(akas_df, title_basics_df)
-    # # Show results
+    # Show results
     # task_5.show()
 
-    # # tasks6
+    # tasks6
     task_6 = tasks.task6(title_basics_df, episode_df)
     # # Show results
     # task_6.show()
@@ -95,8 +93,6 @@ def main():
     # task_8.show()
 
     # save results in files
-    my_list = [('John', 28), ('Jane', 24), ('Alice', 32)]
-    task_1 = spark_session.createDataFrame(my_list, ['Name', 'Age'])
 
     tasks_list = [{'task_1': task_1},
                   {'task_2': task_2},
