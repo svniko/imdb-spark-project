@@ -1,5 +1,5 @@
 from read_write import write_file
-from pyspark.sql.functions import col, collect_list, when, explode, split, mean, desc
+from pyspark.sql.functions import col, collect_list, when, explode, split, mean, desc, year
 from pyspark.sql.types import IntegerType
 import pyspark.sql.types as t
 
@@ -8,9 +8,7 @@ def task1(df):
     """
     Get all titles of series/movies etc. that are available in Ukrainian.
     """
-
-    df_filter = df.filter((col("region") == "UA") & (col("title").isNotNull()))
-    df_filter = df_filter.select("title")
+    df_filter = df.filter((col("region") == "UA") & (col("title").isNotNull())).select("title")
 
     return df_filter
 
@@ -24,8 +22,8 @@ def task2(df):
     df = df.withColumn("birthYear", df["birthYear"].cast(IntegerType()))
 
     # Filter birthYear to be in 19 century
-    born_in_1800 = df.filter((col("birthYear") > 1800) & (col("birthYear") <= 1900))
-    born_in_1800 = born_in_1800.select("primaryName", "birthYear", "deathYear", "primaryProfession")
+    born_in_1800 = df.filter((col("birthYear") > 1800) & (col("birthYear") <= 1900)).select("primaryName")
+    # born_in_1800 = born_in_1800.select("primaryName", "birthYear", "deathYear", "primaryProfession")
 
     return born_in_1800
 
@@ -35,8 +33,9 @@ def task3(df):
     Get titles of all movies that last more than 2 hours.
     """
     # Filter runtimeMinutes to be greater than 120 min, having cast to int before
-    df_filter = df.filter(col("runtimeMinutes").cast(IntegerType()) >= 120)
-    df_filter = df_filter.select("primaryTitle", "runtimeMinutes")
+
+    df_filter = (df.filter((col("runtimeMinutes").cast(IntegerType()) >= 120) & (col("titleType") == 'movie'))
+                   .select("primaryTitle"))
 
     return df_filter
 
@@ -99,21 +98,71 @@ def task5(akas_df, basics_df):
     return top_100_df
 
 
-def task7(title_df, episode_df, akas_df):
+def task6(title_df, episode_df):
     """
     Get information about how many episodes in each TV Series. Get the top
     50 of them starting from the TV Series with the biggest quantity of
     episodes.
      """
+    # select needed columns
     title_df = title_df.select("tconst", "primaryTitle")
     episode_df = episode_df.select("tconst", "parentTconst")
+
+    # merge title_df and episode_df
     df_merged = title_df.join(episode_df, "tconst").drop('tconst')
+
+    # find the names of tvSeries corresponding to episodes
     df_final = (df_merged.withColumnRenamed('primaryTitle', 'primaryTitle_TVSeries')
                          .join(title_df, df_merged["parentTconst"] == title_df["tconst"])
                          .drop("tconst"))
+
+    # find number of episodes
     df_f = df_final.groupBy("primaryTitle").count().sort(desc('count')).limit(50)
 
     return df_f
+
+
+def task7(spark_session, title_df, ratings_df):
+    """
+    Get 10 titles of the most popular movies/series etc. by each decade
+    """
+    # select needed columns
+    title_df = title_df.select("tconst", "primaryTitle", "startYear", "endYear")
+
+    # get rid of series episodes
+    title_df = title_df.filter((col("titleType") != "tvEpisode"))
+
+    # if item is not series set endYear = startYear
+    title_df = title_df.withColumn("endYear", when(col("endYear") == "\\N", col("startYear")).otherwise(col("endYear")))
+
+    # join titles with ratings
+    df_whole = title_df.join(ratings_df, "tconst").drop("tconst").drop("numVotes")
+
+    # create an empty dataframe to accumulate the result
+    schema = t.StructType([
+        t.StructField("primaryTitle", t.StringType(), True),
+        t.StructField("startYear", t.StringType(), True),
+        t.StructField("endYear", t.StringType(), True),
+        t.StructField("averageRating", t.StringType(), True)
+    ])
+    empty_rdd = spark_session.sparkContext.emptyRDD()
+    df_result = spark_session.createDataFrame(empty_rdd, schema)
+
+
+    # find 10 popular items and add them to the resulting dataframe
+    for decade in range(189, 203):
+        # print(f"Top Movies of {decade}0s:")
+        df_decade = (df_whole.filter((df_whole["startYear"] >= decade*10)
+                                     & (df_whole["startYear"] < (decade + 1)*10)
+                                     & (df_whole["endYear"] >= decade*10)
+                                     )
+                             .orderBy(desc("averageRating")).limit(10))
+        # df_decade.printSchema()
+        # df_decade.show()
+
+        df_result = df_result.union(df_decade)
+
+    return df_result
 
 
 def task8(spark_session, basics_df, ratings_df):
@@ -148,6 +197,6 @@ def task8(spark_session, basics_df, ratings_df):
         df_result = df_result.union(df_genre)
 
     return df_result
-    #
+
 
 
