@@ -1,9 +1,6 @@
 from pyspark.sql.window import Window
 from pyspark.sql.functions import col, collect_list, when, explode, split, row_number, desc, sequence, floor, mean, regexp_replace
 from pyspark.sql.types import IntegerType, DoubleType
-import pyspark.sql.types as t
-
-import numpy
 
 
 def task1(df):
@@ -49,37 +46,19 @@ def task4(principals_df, names_df, titles_df):
     # Select necessary columns
     principals_selected_df = principals_df.select("tconst", "nconst", "category", "characters")
     names_selected_df = names_df.select("nconst", "primaryName")
-    titles_selected_df = titles_df.select("tconst", "primaryTitle")
 
     # Filter the data to keep only actors and actresses
     principals_filtered_df = principals_selected_df.filter(col("category").isin("actor", "actress"))
 
     # Join the principals and names dataframes
-    # joined_df = principals_filtered_df.join(names_selected_df, "nconst")
     whole_df = principals_filtered_df.join(names_selected_df, "nconst").drop("nconst", "tconst", "category")
+
+    # split characters string and  explode
     whole_df = whole_df.withColumn("characters", regexp_replace("characters", "[\"\\[\\]]", ""))
     whole_df = whole_df.select("primaryName", explode(split(col("characters"), ",")))\
                        .withColumnRenamed("col", "characters")
 
-    # Join the principals+names dataframe with the titles dataframe
-    # whole_df = joined_df.join(titles_selected_df, "tconst")
-    whole_df.printSchema()
-
-    # Group the data
-    # final_df = whole_df.groupBy("primaryName", "primaryTitle", "characters").count()
-
-
-    # final_df = whole_df.groupBy("primaryName") \
-    #                    .agg(collect_list("primaryTitle").alias("primaryTitle"),
-    #                         collect_list("characters").alias("characters"))
-    # whole_df = whole_df.withColumn("characters", concat_ws(" ", "characters"))
-
-
-    # final_df = whole_df.groupBy("primaryName").agg(collect_list("characters").alias("characters")) \
-    #                    .withColumn("characters", concat_ws(";", "characters"))
-
     return whole_df
-    # return final_df
 
 
 def task5(akas_df, basics_df):
@@ -93,21 +72,17 @@ def task5(akas_df, basics_df):
     joined_df = akas_df.join(basics_df, akas_df["titleId"] == basics_df["tconst"])
 
     # Filter the data to keep only adult movies/series
-    # adult_df = joined_df.filter((col("isAdult") == 1) & (col("titleType").isin(["movie", "tvSeries"])))
     adult_df = joined_df.filter(col("isAdult") == 1)
 
     # Group the data by region and count the number of adult titles per region
     adult_df = adult_df.withColumn("region", when(col("region") == "\\N", None).otherwise(col("region")))
 
     # Group and sort the data by the count in descending order
-    # region_count_df = adult_df.groupBy("region").count()
-    # sorted_df = region_count_df.sort("count", ascending=False)
-    region_count_df = adult_df.filter(col("region").isNotNull()).groupBy("region").count()
-    sorted_df = region_count_df.sort("count", ascending=False)
 
-    # Get the top 100 rows
-    top_100_df = sorted_df.limit(100)
-    return top_100_df
+    region_count_df = adult_df.filter(col("region").isNotNull()).groupBy("region").count()
+    sorted_df = region_count_df.sort("count", ascending=False).limit(100)
+
+    return sorted_df
 
 
 def task6(title_df, episode_df):
@@ -134,25 +109,30 @@ def task6(title_df, episode_df):
     return df_f
 
 
-def task7(spark_session, title_df, ratings_df):
+def task7(title_df, ratings_df):
     """
     Get 10 titles of the most popular movies/series etc. by each decade
     """
-
+    # select needed columns
     title_df = title_df.select("tconst", "primaryTitle", "startYear", "endYear")
 
-    # get rid of series episodes
+    # get rid of episodes - to have only name of the whole series
     title_df = title_df.filter((col("titleType") != "tvEpisode"))
 
     # if item is not series set endYear = startYear
     title_df = title_df.withColumn("endYear", when(col("endYear") == "\\N", col("startYear")).otherwise(col("endYear")))
+
+    # create decades (187 for 1870, 200 for 2000...) for startYear and endYear
     title_df = title_df.withColumn("endDec", floor(title_df['endYear'] / 10))\
                        .withColumn("startDec", floor(title_df['startYear'] / 10))
-    # title_df = title_df.withColumn('endDec', col('endYear') // 10)
 
+    # create decades between startYear and endYear
     title_df = title_df.withColumn('decade', explode(sequence('startDec', 'endDec')))
+
     # join titles with ratings
     df_whole = title_df.join(ratings_df, "tconst").drop("tconst", "numVotes")
+
+    # calculate mean averageRating value for group
     df_whole = df_whole.groupBy('decade', 'primaryTitle').agg(mean('averageRating').cast(DoubleType()).alias('averageRating'))
 
     # define the window specification
@@ -163,98 +143,31 @@ def task7(spark_session, title_df, ratings_df):
                        .filter(col("row") <= 10)\
                        .select('primaryTitle', 'decade', 'averageRating') \
                        .withColumn("decade", (df_whole['decade'] * 10))
-    #
-    # # filter the top 10 titles for each decade
-    # final_df = ranked_df.filter(rank <= 10).select('primaryTitle', 'decade', 'averageRating')
-    #
-    # # display the result
-    # final_df.show()
-
-    # window_genres = Window.partitionBy("genres").orderBy(col("averageRating").desc())
-    # df_result = df_merged.withColumn("row", row_number().over(window_genres)) \
-    #     .filter(col("row") <= 10).drop("row")
-
-
-
-
-
-    # # select needed columns
-    # title_df = title_df.select("tconst", "primaryTitle", "startYear", "endYear")
-    #
-    # # get rid of series episodes
-    # title_df = title_df.filter((col("titleType") != "tvEpisode"))
-    #
-    # # if item is not series set endYear = startYear
-    # title_df = title_df.withColumn("endYear", when(col("endYear") == "\\N", col("startYear")).otherwise(col("endYear")))
-    #
-    # # join titles with ratings
-    # df_whole = title_df.join(ratings_df, "tconst").drop("tconst").drop("numVotes")
-    #
-    # # # create an empty dataframe to accumulate the result
-    # # schema = t.StructType([
-    # #     t.StructField("primaryTitle", t.StringType(), True),
-    # #     t.StructField("startYear", t.StringType(), True),
-    # #     t.StructField("endYear", t.StringType(), True),
-    # #     t.StructField("averageRating", t.StringType(), True)
-    # # ])
-    # # empty_rdd = spark_session.sparkContext.emptyRDD()
-    # # df_result = spark_session.createDataFrame(empty_rdd, schema)
-    # #
-    # # # find 10 popular items and add them to the resulting dataframe
-    # # for decade in range(189, 203):
-    # #     # print(f"Top Movies of {decade}0s:")
-    # #     df_decade = (df_whole.filter((df_whole["startYear"] >= decade*10)
-    # #                                  & (df_whole["startYear"] < (decade + 1)*10)
-    # #                                  & (df_whole["endYear"] >= decade*10)
-    # #                                  )
-    # #                          .orderBy(desc("averageRating")).limit(10))
-    # #     # df_decade.printSchema()
-    # #     # df_decade.show()
-    # #
-    # #     df_result = df_result.union(df_decade)
 
     return final_df
 
 
-def task8(spark_session, basics_df, ratings_df):
+def task8(basics_df, ratings_df):
     """
     Get 10 titles of the most popular movies/series etc. by each genre.
     !!Let's assume that most popular are those with max averageRating!!
     """
+
+    # filter missing values for genres
     basics_df = basics_df.withColumn("genres", when(col("genres") == "\\N", None).otherwise(col("genres")))
     basics_df = basics_df.filter(col("genres").isNotNull())
+
+    # unpack genres
     genres_df = (basics_df.select("tconst", "primaryTitle", explode(split(col("genres"), ",")))
                           .withColumnRenamed("col", "genres"))
 
+    # join genres and ratings
     df_merged = genres_df.join(ratings_df, "tconst").drop("tconst", "numVotes")
 
+    # create window
     window_genres = Window.partitionBy("genres").orderBy(col("averageRating").desc())
     df_result = df_merged.withColumn("row", row_number().over(window_genres)) \
                          .filter(col("row") <= 10).drop("row")
-
-
-
-    # # df_merged = df_merged.drop(" const", "numVotes")
-    # unique_genres = df_merged.toPandas()['genres'].unique()
-    # unique_sort = numpy.sort(unique_genres)
-    #
-    #
-    # # print(unique_genres)
-    #
-    # schema = t.StructType([
-    #     t.StructField("primaryTitle", t.StringType(), True),
-    #     t.StructField("genres", t.StringType(), True),
-    #     t.StructField("averageRating", t.StringType(), True)
-    # ])
-    # empty_rdd = spark_session.sparkContext.emptyRDD()
-    # df_result = spark_session.createDataFrame(empty_rdd, schema)
-    #
-    # for g in unique_sort:
-    #     # print(f"\nTop 10 {g} movies/series:\n")
-    #     df_genre = df_merged.filter((col("genres") == g)).sort(col('averageRating').desc()).limit(10)
-    #     # df_genre.printSchema()
-    #     df_result = df_result.union(df_genre)
-
     return df_result
 
 

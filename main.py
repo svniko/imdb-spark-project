@@ -6,8 +6,6 @@ from pathlib import Path
 import tasks
 import settings
 
-from pyspark.sql.functions import col
-
 
 def main():
     spark_session = (SparkSession.builder
@@ -83,34 +81,30 @@ def main():
     task_6.show()
 
     # tasks7
-    task_7 = tasks.task7(spark_session, title_basics_df, ratings_df)
+    task_7 = tasks.task7(title_basics_df, ratings_df)
     # Show results
     task_7.show()
 
     # tasks8
-    task_8 = tasks.task8(spark_session, title_basics_df, ratings_df)
+    task_8 = tasks.task8(title_basics_df, ratings_df)
     # Show results
     task_8.show()
 
     # # save results in files
-    # tasks_list = [{'imdb_out_2/task_4': task_4}]
-
-    tasks_list = [{'imdb_out_2/task_1': task_1},
-                  {'imdb_out_2/task_2': task_2},
-                  {'imdb_out_2/task_3': task_3},
-                  {'imdb_out_2/task_4': task_4},
-                  {'imdb_out_2/task_5': task_5},
-                  {'imdb_out_2/task_6': task_6},
-                  {'imdb_out_2/task_7': task_7},
-                  {'imdb_out_2/task_8': task_8}]
+    tasks_list = [{'imdb_out/task_1': task_1},
+                  {'imdb_out/task_2': task_2},
+                  {'imdb_out/task_3': task_3},
+                  {'imdb_out/task_4': task_4},
+                  {'imdb_out/task_5': task_5},
+                  {'imdb_out/task_6': task_6},
+                  {'imdb_out/task_7': task_7},
+                  {'imdb_out/task_8': task_8}]
 
     folder = Path('imdb_out')
     folder.mkdir(parents=True, exist_ok=True)
 
     for task in tasks_list:
         for key, value in task.items():
-            # file_path = Path(folder, key+'.csv')
-            file_path = Path(folder, key)
             write_file(value, key)
 
 
