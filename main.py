@@ -54,62 +54,64 @@ def main():
 
     # task1
     task_1 = tasks.task1(akas_df)
-    # Show results
-    # task_1.show()
+    # # Show results
+    task_1.show()
 
     # task2
     task_2 = tasks.task2(name_basics_df)
     # Show results
-    # task_2 .show()
+    task_2 .show()
 
     # task 3
     task_3 = tasks.task3(title_basics_df)
     # Show results
-    # task_3.show()
+    task_3.show()
 
     # task4
     task_4 = tasks.task4(principals_df, names_df, title_basics_df)
     # Show results
-    # task_4.show()
+    task_4.show()
 
     # task5
     task_5 = tasks.task5(akas_df, title_basics_df)
     # Show results
-    # task_5.show()
+    task_5.show()
 
     # tasks6
     task_6 = tasks.task6(title_basics_df, episode_df)
-    # # Show results
-    # task_6.show()
+    # Show results
+    task_6.show()
 
     # tasks7
     task_7 = tasks.task7(spark_session, title_basics_df, ratings_df)
     # Show results
-    # task_7.show()
+    task_7.show()
 
     # tasks8
     task_8 = tasks.task8(spark_session, title_basics_df, ratings_df)
     # Show results
-    # task_8.show()
+    task_8.show()
 
-    # save results in files
+    # # save results in files
+    # tasks_list = [{'imdb_out_2/task_4': task_4}]
 
-    tasks_list = [{'task_1': task_1},
-                  {'task_2': task_2},
-                  {'task_3': task_3},
-                  {'task_4': task_4},
-                  {'task_5': task_5},
-                  {'task_6': task_6},
-                  {'task_7': task_7},
-                  {'task_8': task_8}]
+    tasks_list = [{'imdb_out_2/task_1': task_1},
+                  {'imdb_out_2/task_2': task_2},
+                  {'imdb_out_2/task_3': task_3},
+                  {'imdb_out_2/task_4': task_4},
+                  {'imdb_out_2/task_5': task_5},
+                  {'imdb_out_2/task_6': task_6},
+                  {'imdb_out_2/task_7': task_7},
+                  {'imdb_out_2/task_8': task_8}]
 
     folder = Path('imdb_out')
     folder.mkdir(parents=True, exist_ok=True)
 
     for task in tasks_list:
         for key, value in task.items():
-            file_path = Path(folder, key+'.csv')
-            write_file(value, file_path)
+            # file_path = Path(folder, key+'.csv')
+            file_path = Path(folder, key)
+            write_file(value, key)
 
 
 if __name__ == "__main__":
