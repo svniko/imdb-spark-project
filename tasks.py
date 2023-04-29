@@ -31,7 +31,7 @@ def task3(df):
     Get titles of all movies that last more than 2 hours.
     """
     # Filter runtimeMinutes to be greater than 120 min, having cast to int before
-    df_filter = (df.filter((col("runtimeMinutes").cast(IntegerType()) >= 120) & (col("titleType") == 'movie'))
+    df_filter = (df.filter((col("runtimeMinutes").cast(IntegerType()) > 120) & (col("titleType") == 'movie'))
                    .select("primaryTitle"))
 
     return df_filter
